@@ -1,0 +1,40 @@
+{
+    "name": "読書記録アプリ",
+    "short_name": "読書記録",
+    "description": "ISBNから書籍情報を検索し、読書記録を管理するアプリ",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#ffffff",
+    "theme_color": "#2196F3",
+    "icons": [
+      {
+        "src": "icons/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "icons/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ],
+    "shortcuts": [
+      {
+        "name": "スキャナーを開く",
+        "short_name": "スキャン",
+        "description": "バーコードスキャンを開始",
+        "url": "/?scan=true",
+        "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+      },
+      {
+        "name": "本を追加",
+        "short_name": "追加",
+        "description": "新しい本を追加",
+        "url": "/?add=true",
+        "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+      }
+    ]
+  }

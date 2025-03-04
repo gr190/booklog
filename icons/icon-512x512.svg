@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2196F3"/>
+      <stop offset="100%" stop-color="#1565C0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="512" height="512" rx="100" fill="url(#bg-gradient)"/>
+  
+  <!-- 本のスタック -->
+  <g transform="translate(80, 120) rotate(-5)">
+    <rect width="180" height="250" rx="5" fill="#FFF" opacity="0.9"/>
+    <rect x="10" y="30" width="160" height="10" rx="2" fill="#BBB"/>
+    <rect x="10" y="50" width="120" height="10" rx="2" fill="#BBB"/>
+    <rect x="10" y="180" width="80" height="8" rx="2" fill="#BBB"/>
+    <rect x="10" y="200" width="120" height="8" rx="2" fill="#BBB"/>
+    <rect x="10" y="220" width="100" height="8" rx="2" fill="#BBB"/>
+  </g>
+  
+  <g transform="translate(130, 140) rotate(10)">
+    <rect width="180" height="250" rx="5" fill="#FFF" opacity="0.7"/>
+    <rect x="10" y="30" width="160" height="10" rx="2" fill="#BBB"/>
+    <rect x="10" y="50" width="120" height="10" rx="2" fill="#BBB"/>
+    <rect x="10" y="180" width="80" height="8" rx="2" fill="#BBB"/>
+    <rect x="10" y="200" width="120" height="8" rx="2" fill="#BBB"/>
+    <rect x="10" y="220" width="100" height="8" rx="2" fill="#BBB"/>
+  </g>
+  
+  <g transform="translate(170, 150) rotate(20)">
+    <rect width="180" height="250" rx="5" fill="#FFF"/>
+    <rect x="10" y="30" width="160" height="10" rx="2" fill="#BBB"/>
+    <rect x="10" y="50" width="120" height="10" rx="2" fill="#BBB"/>
+    <rect x="10" y="180" width="80" height="8" rx="2" fill="#BBB"/>
+    <rect x="10" y="200" width="120" height="8" rx="2" fill="#BBB"/>
+    <rect x="10" y="220" width="100" height="8" rx="2" fill="#BBB"/>
+  </g>
+  
+  <!-- 評価の星 -->
+  <g transform="translate(240, 420)">
+    <polygon points="0,0 9,0 12,8 15,0 24,0 17,13 21,24 12,18 3,24 7,13" fill="#FFC107"/>
+    <polygon points="36,0 45,0 48,8 51,0 60,0 53,13 57,24 48,18 39,24 43,13" fill="#FFC107"/>
+    <polygon points="72,0 81,0 84,8 87,0 96,0 89,13 93,24 84,18 75,24 79,13" fill="#FFC107"/>
+  </g>
+</svg>

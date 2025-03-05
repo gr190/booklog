@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>読書記録アプリ</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./icons/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <!-- ZXingライブラリを直接CDNから読み込む -->
+    <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Inline styles from the original file -->
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #03A9F4;
+            --accent-color: #FF9800;
+            --text-color: #333333;
+            --background-color: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --border-color: #E0E0E0;
+            --error-color: #F44336;
+            --success-color: #4CAF50;
+            --unread-color: #9E9E9E;
+            --reading-color: #2196F3;
+            --finished-color: #4CAF50;
+            --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --star-inactive: #E0E0E0;
+            --star-active: #FFC107;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #1976D2;
+            --secondary-color: #0288D1;
+            --accent-color: #FFA726;
+            --text-color: #F5F5F5;
+            --background-color: #212121;
+            --light-gray: #333333;
+            --border-color: #424242;
+            --unread-color: #9E9E9E;
+            --reading-color: #2196F3;
+            --finished-color: #4CAF50;
+            --shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            --star-inactive: #555555;
+            --star-active: #FFD700;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            transition: var(--transition);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .search-container {
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .search-options {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-right: 1rem;
+        }
+
+        .search-option.active {
+            border-bottom: 3px solid var(--accent-color);
+            font-weight: bold;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input, select, textarea {
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            flex-grow: 1;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .book-container {
+            display: none;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .book-header {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .book-cover {
+            width: 140px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            background-color: var(--background-color);
+        }
+
+        .book-info {
+            flex-grow: 1;
+        }
+
+        .book-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .book-meta {
+            margin-bottom: 0.3rem;
+        }
+
+        .book-link {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .book-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 楽天リンクは非表示に設定 */
+        .rakuten-link {
+            display: none;
+        }
+
+        .api-info {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--unread-color);
+        }
+
+        #api-source {
+            display: none;
+        }
+
+        #api-progress {
+            display: none;
+            padding: 5px 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* 以下、元のスタイルを維持 */
+    </style>
+</head>
+<body>
+    <div id="offline-message">オフラインモードです。一部の機能は利用できません。</div>
+
+    <header>
+        <button id="back-button" style="display: none;"><i class="fas fa-arrow-left"></i></button>
+        <div class="header-title">読書記録アプリ</div>
+        <div class="header-actions">
+            <button id="sync-button" title="データを同期"><i class="fas fa-sync-alt"></i></button>
+            <button id="home-button" title="ホーム"><i class="fas fa-home"></i></button>
+            <button id="theme-toggle" title="テーマ切替"><i class="fas fa-moon"></i></button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 同期情報 -->
+        <div class="sync-container">
+            <div>
+                <div id="user-id-display" class="user-id">ID: xxxxxxxx...</div>
+                <div class="sync-info">最終同期: <span id="last-synced">未同期</span></div>
+            </div>
+            <button id="share-button" title="共有リンクを生成"><i class="fas fa-share-alt"></i> 共有</button>
+        </div>
+
+        <!-- API進捗表示 -->
+        <div id="api-progress"></div>
+
+        <!-- モックAPIコントロール （開発環境用） -->
+        <div id="mock-api-controls" style="display: none;">
+            <div id="mock-api-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="use-mock-api">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span>モックAPIを使用（実際のAPIが利用できない場合）</span>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-options">
+                <div id="manual-option" class="search-option active">手動入力</div>
+                <div id="scan-option" class="search-option">バーコードスキャン</div>
+            </div>
+            
+            <div id="manual-container">
+                <div class="search-input-group">
+                    <input type="text" id="isbn-input" placeholder="ISBNを入力（ハイフンなし13桁または10桁）">
+                    <button id="search-button">検索</button>
+                </div>
+                <div id="error-message" class="error-message"></div>
+            </div>
+            
+            <div id="scanner-container" style="display: none;">
+                <video id="scanner-video"></video>
+                <div class="camera-guide">
+                    <div class="scan-area">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
+                <div class="camera-indicator"></div>
+                <div class="scanner-message">バーコードをスキャンエリアに合わせてください</div>
+                <div class="scanner-controls">
+                    <button id="fullscreen-button"><i class="fas fa-expand"></i> 全画面</button>
+                    <button id="scanner-switch-button"><i class="fas fa-sync"></i> カメラ切替</button>
+                    <button id="scanner-stop-button"><i class="fas fa-times"></i> スキャン停止</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading">
+            <div class="loading-spinner"></div>
+            <p>書籍情報を取得中...</p>
+        </div>
+
+        <div id="book-container" class="book-container">
+            <div class="book-header">
+                <img id="book-cover-img" class="book-cover" src="./icons/placeholder.svg" alt="書影">
+                <div class="book-info">
+                    <h2 id="book-title" class="book-title">書籍タイトル</h2>
+                    <p id="book-author" class="book-meta">著者: </p>
+                    <p id="book-publisher" class="book-meta">出版社: </p>
+                    <p id="book-published-date" class="book-meta">出版日: </p>
+                    <p id="book-isbn" class="book-meta">ISBN: </p>
+                    <!-- 価格情報は非表示に設定 -->
+                    <p id="book-price" class="book-meta" style="display: none;">価格: </p>
+                    <!-- 楽天リンクは非表示に設定 -->
+                    <a id="rakuten-link" class="rakuten-link" href="#" target="_blank" style="display: none;">
+                        <i class="fas fa-shopping-cart"></i> 楽天で詳細を見る
+                    </a>
+                    <div class="api-info">
+                        <p id="api-source">データソース: -</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reading-form">
+                <div class="reading-form-group">
+                    <div class="form-label">読書状況</div>
+                    <div class="status-buttons">
+                        <button type="button" class="status-button active" data-status="unread">未読</button>
+                        <button type="button" class="status-button" data-status="reading">読書中</button>
+                        <button type="button" class="status-button" data-status="finished">読了</button>
+                    </div>
+                    <select id="reading-status-select" style="display: none;">
+                        <option value="unread">未読</option>
+                        <option value="reading">読書中</option>
+                        <option value="finished">読了</option>
+                    </select>
+                </div>
+
+                <div id="completion-date" class="reading-form-group completion-date">
+                    <label for="completion-date-input" class="form-label">読了日</label>
+                    <input type="date" id="completion-date-input">
+                </div>
+
+                <div class="reading-form-group">
+                    <label for="rating-stars" class="form-label">評価</label>
+                    <div id="rating-stars" class="rating-stars">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                </div>
+
+                <div class="reading-form-group">
+                    <label for="tag-input" class="form-label">タグ</label>
+                    <div id="tags-input-container" class="tags-input-container">
+                        <input type="text" id="tag-input" placeholder="タグを追加">
+                    </div>
+                    <div id="tag-suggestions" class="tag-suggestions"></div>
+                </div>
+
+                <div class="reading-form-group">
+                    <label for="reading-notes" class="form-label">メモ</label>
+                    <textarea id="reading-notes"></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="delete-book-button" style="display: none;">削除</button>
+                    <button id="add-book-button">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 以下は元のHTMLと同じ -->
+    </div>
+
+    <!-- QRコード生成ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>
